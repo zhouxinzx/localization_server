@@ -4,16 +4,18 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <math.h>
 #include <unistd.h>
 #include<unistd.h>
 #include<pthread.h>
 #include<iostream>
-#include"tdoa.h"
+//#include"tdoa.h"
+#include"tdoa318.h"
 //#include"tdoa_n.h"
-#include"tdoa_relax.h"
+//#include"tdoa_relax.h"
 #define BACKLOG 5 //完成三次握手但没有accept的队列的长度
 #define CONCURRENT_MAX 10 //应用层同时可以处理的连接
-#define SERVER_PORT 9000
+#define SERVER_PORT 9001
 #define BUFFER_SIZE 1024
 #define Node_number 8
 using namespace std;
@@ -22,32 +24,41 @@ int client_fds[CONCURRENT_MAX];
 long double measure_data[Node_number]={0};
 int data_flag[Node_number]={0};
 double Microphone_Cita[Node_number]={0,270,0,270,0,270,0,270};
-double Microphone_Center_Location[Node_number][2]={2,2,2,2,4,2,4,2,2,4,2,4,4,4,4,4};
+double Microphone_Center_Location[Node_number][2]={3,3,3,3,7,3,7,3,3,7,3,7,7,7,7,7};
 double Microphone_Distance=0.135;
-double Room_Length=6;
-double Room_Width=6;
+double Room_Length=10;
+double Room_Width=10;
 int scale=10;
 double result[2]={0,0};
 
 void *calculate(void *ptr)
 {
 		while(1)
+
 		{
+		sleep(1);
 		int flag_count=0;
 		for(int i=0;i<Node_number;i++)
 		{
 				if(data_flag[i]==1)
-						flag_count++;
+						flag_count=flag_count+1;
 		}
-		if(flag_count==Node_number)
+		if(flag_count>3)
 		{
-				tdoa(Node_number, measure_data,Microphone_Cita, Microphone_Center_Location, Microphone_Distance,Room_Length,Room_Width,scale,result);
+			for(int i=0;i<Node_number;i++)
+			{
+				if(data_flag[i]==0)
+					measure_data[i]=0;
+				cout<<measure_data[i]*44100<<" ";
+			}
+			cout<<endl;
+	    tdoa(Node_number, measure_data,Microphone_Cita, Microphone_Center_Location, Microphone_Distance,Room_Length,Room_Width,scale,result,data_flag);
 				cout<<"结果为：X="<<result[0]<<"  Y="<<result[1]<<endl;
 				for (int i=0;i<Node_number;i++)
 						data_flag[i]=0;
 		}
-		sleep(1);
 		}
+
 		return 0;
 }
 
@@ -60,7 +71,7 @@ int main (int argc, const char * argv[])
         server_addr.sin_len = sizeof(struct sockaddr_in);
         server_addr.sin_family = AF_INET;
         server_addr.sin_port = htons(SERVER_PORT);
-        server_addr.sin_addr.s_addr = inet_addr("192.168.1.101");
+        server_addr.sin_addr.s_addr = inet_addr("192.168.1.106");
         bzero(&(server_addr.sin_zero),8);
         //创建socket
         int server_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -189,16 +200,27 @@ int main (int argc, const char * argv[])
 																break;
 												}
 										}
-										break;
+								}
+
+								int index_phone=0;
+								for(int l=0;l<byte_num;l++)
+								{
+										if(recv_msg[l]=='#')
+										{
+												index_phone=recv_msg[l+1]-'0';
+												break;
+										}
 								}
 
                                 //printf("客户端(%d):%s\n",i,recv_msg);
 								if(data_temp[0]!='^')
 								{
 										double b=atof(data_temp);
-										measure_data[i]=b/(44100*1.0);
-										data_flag[i]=1; 
-										cout<<b<<endl;
+										if(abs(b)<22)
+										{
+										measure_data[index_phone]=b/(44100*1.0);
+										data_flag[index_phone]=1;  
+										}
 
                             }
 							}

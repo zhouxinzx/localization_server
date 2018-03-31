@@ -13,7 +13,7 @@
 #include"tdoa_relax.h"
 #define BACKLOG 5 //完成三次握手但没有accept的队列的长度
 #define CONCURRENT_MAX 10 //应用层同时可以处理的连接
-#define SERVER_PORT 9000
+#define SERVER_PORT 9001
 #define BUFFER_SIZE 1024
 #define Node_number 8
 using namespace std;
@@ -60,7 +60,7 @@ int main (int argc, const char * argv[])
         server_addr.sin_len = sizeof(struct sockaddr_in);
         server_addr.sin_family = AF_INET;
         server_addr.sin_port = htons(SERVER_PORT);
-        server_addr.sin_addr.s_addr = inet_addr("192.168.1.101");
+        server_addr.sin_addr.s_addr = inet_addr("192.168.1.100");
         bzero(&(server_addr.sin_zero),8);
         //创建socket
         int server_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -166,7 +166,9 @@ int main (int argc, const char * argv[])
                             long byte_num = recv(client_fds[i],recv_msg,BUFFER_SIZE,0);
                             if (byte_num > 0) 
 							{
-                                if (byte_num > BUFFER_SIZE)
+                                recv_msg[byte_num] = '\0';
+								cout<<recv_msg;
+                            /*    if (byte_num > BUFFER_SIZE)
 								{
                                     byte_num = BUFFER_SIZE;
                                 }
@@ -197,10 +199,9 @@ int main (int argc, const char * argv[])
 								{
 										double b=atof(data_temp);
 										measure_data[i]=b/(44100*1.0);
-										data_flag[i]=1; 
-										cout<<b<<endl;
+										data_flag[i]=1;  
 
-                            }
+                            }*/
 							}
 								else if(byte_num < 0){
                                 printf("从客户端(%d)接受消息出错.\n",i);

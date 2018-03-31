@@ -3,27 +3,17 @@
 #define pi 3.1415926535
 #define Num_Node 8
 using namespace std;
-void tdoarelax(int Node_number, long double *measure_data, double *Microphone_Cita, double Microphone_Center_Location[Num_Node][2], double Microphone_Distance, double Room_Length, double Room_Width, int scale, double *result)
+void tdoa(int Node_number, long double *measure_data, double *Microphone_Cita, double Microphone_Center_Location[Num_Node][2], double Microphone_Distance, double Room_Length, double Room_Width, int scale, double *result)
 {
 	double Microphone_1_Location[Num_Node][2];
 	double Microphone_2_Location[Num_Node][2];
-	int data[Num_Node];
 	for (int i = 0; i<Node_number; i++)
 	{
 		Microphone_1_Location[i][0] = Microphone_Center_Location[i][0] + 0.5*Microphone_Distance*(cos(Microphone_Cita[i] * pi / 180));
 		Microphone_1_Location[i][1] = Microphone_Center_Location[i][1] + 0.5*Microphone_Distance*(-sin(Microphone_Cita[i] * pi / 180));
 		Microphone_2_Location[i][0] = Microphone_Center_Location[i][0] - 0.5*Microphone_Distance*(cos(Microphone_Cita[i] * pi / 180));
 		Microphone_2_Location[i][1] = Microphone_Center_Location[i][1] - 0.5*Microphone_Distance*(-sin(Microphone_Cita[i] * pi / 180));
-
-		if(measure_data[i]>0)
-				data[i]=1;
-		else
-				data[i]=0;
-
 	}
-	int sum_size=0;
-	double sum_x=0;
-	double sum_y=0;
 	int Length, Width;
 	Length = (int)Room_Length;
 	Width = (int)Room_Width;
@@ -36,30 +26,29 @@ void tdoarelax(int Node_number, long double *measure_data, double *Microphone_Ci
 			double x = k / (scale*1.0);
 			double y = j / (scale*1.0);
 			double data_temp[Num_Node];
-			int temp[Num_Node]={0};
-			int total=0;
 			for (int i = 0; i<Node_number; i++)
 			{
 				data_temp[i] = (sqrt((x - Microphone_1_Location[i][0])*(x - Microphone_1_Location[i][0]) + (y - Microphone_1_Location[i][1])*(y - Microphone_1_Location[i][1])) - sqrt((x - Microphone_2_Location[i][0])*(x - Microphone_2_Location[i][0]) + (y - Microphone_2_Location[i][1])*(y - Microphone_2_Location[i][1]))) / 340;
-				if(data_temp[i]>0)
-						temp[i]=1;
-				else
-						temp[i]=0;
-
-				if(data_temp[i]==data[i])
-						total++;
 			}
-
-			if(total==Num_Node)
+			double error = 0;
+			double max_error=0;
+			for (int i = 0; i<Node_number; i++)
 			{
-					sum_x=sum_x+x;
-					sum_y=sum_y+y;
-					sum_size++;
+				double temp = abs(data_temp[i] - measure_data[i]);
+				if (temp>max_error)
+						max_error=temp;
+				error = error + temp;
 			}
-			
+			error=error-max_error;
+			if (error<min)
+			{
+				min = error;
+				xx = x;
+				yy = y;
+			}
 		}
 	}
-	result[0] = sum_x/(sum_size*1.0);
-	result[1] = sum_y/(sum_size*1.0);
+	result[0] = xx;
+	result[1] = yy;
 	//cout<<result[0]<<endl;
 }

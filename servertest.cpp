@@ -23,7 +23,7 @@ long double measure_data[Node_number]={0};
 int data_flag[Node_number]={0};
 double Microphone_Cita[Node_number]={0,270,0,270,0,270,0,270};
 double Microphone_Center_Location[Node_number][2]={2,2,2,2,4,2,4,2,2,4,2,4,4,4,4,4};
-double Microphone_Distance=0.135;
+double Microphone_Distance=0.14;
 double Room_Length=6;
 double Room_Width=6;
 int scale=10;
@@ -41,7 +41,7 @@ void *calculate(void *ptr)
 		}
 		if(flag_count==Node_number)
 		{
-				tdoa(Node_number, measure_data,Microphone_Cita, Microphone_Center_Location, Microphone_Distance,Room_Length,Room_Width,scale,result);
+				tdoarelax(Node_number, measure_data,Microphone_Cita, Microphone_Center_Location, Microphone_Distance,Room_Length,Room_Width,scale,result);
 				cout<<"结果为：X="<<result[0]<<"  Y="<<result[1]<<endl;
 				for (int i=0;i<Node_number;i++)
 						data_flag[i]=0;
@@ -85,8 +85,8 @@ int main (int argc, const char * argv[])
         struct timeval tv;
         tv.tv_sec = 20;
         tv.tv_usec = 0;
-		pthread_t id;
-		int ret = pthread_create(&id, NULL, calculate, NULL);
+		//pthread_t id;
+		//int ret = pthread_create(&id, NULL, calculate, NULL);
        // pthread_join(id, NULL);
 		
         while (1) {
@@ -166,11 +166,20 @@ int main (int argc, const char * argv[])
                             long byte_num = recv(client_fds[i],recv_msg,BUFFER_SIZE,0);
                             if (byte_num > 0) 
 							{
+								if(recv_msg[1]=='^')
+										continue;
+								else
+								{
+								cout<<recv_msg<<endl;
+								continue;
+								}
                                 if (byte_num > BUFFER_SIZE)
 								{
                                     byte_num = BUFFER_SIZE;
                                 }
                                 recv_msg[byte_num] = '\0';
+								cout<<recv_msg<<endl;
+								continue;
 								//int ret = pthread_create(&id, NULL, calculate, NULL);
 								char data_temp[byte_num];
 								for(int l=0;l<byte_num;l++)
@@ -197,8 +206,7 @@ int main (int argc, const char * argv[])
 								{
 										double b=atof(data_temp);
 										measure_data[i]=b/(44100*1.0);
-										data_flag[i]=1; 
-										cout<<b<<endl;
+										data_flag[i]=1;  
 
                             }
 							}

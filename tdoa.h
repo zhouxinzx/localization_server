@@ -1,7 +1,7 @@
 #include<iostream>
 #include<cmath>
 #define pi 3.1415926535
-#define Num_Node 4
+#define Num_Node 8
 using namespace std;
 void tdoa(int Node_number, long double *measure_data, double *Microphone_Cita, double Microphone_Center_Location[Num_Node][2], double Microphone_Distance, double Room_Length, double Room_Width, int scale, double *result)
 {

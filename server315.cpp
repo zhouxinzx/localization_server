@@ -4,13 +4,15 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <math.h>
 #include <unistd.h>
 #include<unistd.h>
 #include<pthread.h>
 #include<iostream>
-#include"tdoa.h"
+//#include"tdoa.h"
+#include"tdoa315.h"
 //#include"tdoa_n.h"
-#include"tdoa_relax.h"
+//#include"tdoa_relax.h"
 #define BACKLOG 5 //完成三次握手但没有accept的队列的长度
 #define CONCURRENT_MAX 10 //应用层同时可以处理的连接
 #define SERVER_PORT 9000
@@ -31,6 +33,9 @@ double result[2]={0,0};
 
 void *calculate(void *ptr)
 {
+		int one=0;
+		int two1=0;
+		int two2=0;
 		while(1)
 		{
 		int flag_count=0;
@@ -39,13 +44,57 @@ void *calculate(void *ptr)
 				if(data_flag[i]==1)
 						flag_count++;
 		}
+		
 		if(flag_count==Node_number)
 		{
 				tdoa(Node_number, measure_data,Microphone_Cita, Microphone_Center_Location, Microphone_Distance,Room_Length,Room_Width,scale,result);
 				cout<<"结果为：X="<<result[0]<<"  Y="<<result[1]<<endl;
 				for (int i=0;i<Node_number;i++)
 						data_flag[i]=0;
+				flag_count=0;
 		}
+
+/*		if(flag_count==Node_number-1)
+		{
+				for(int i=0;i<Node_number;i++)
+				{
+						if(data_flag[i]!=1)
+						{
+								one=i;
+								break;
+						}
+				}
+				tdoaone(Node_number, measure_data,Microphone_Cita, Microphone_Center_Location, Microphone_Distance,Room_Length,Room_Width,scale,result,one);
+				cout<<"结果为：X="<<result[0]<<"  Y="<<result[1]<<endl;
+				for (int i=0;i<Node_number;i++)
+						data_flag[i]=0;
+				flag_count=0;
+		}
+
+		if(flag_count==Node_number-2)
+		{
+				int flag1=0;
+				for(int i=0;i<Node_number;i++)
+				{
+						if(data_flag[i]!=1&&flag1==0)
+						{
+								two1=i;
+								flag1=1;
+								continue;
+						}
+
+						if(data_flag[i]!=1)
+						{
+								two2=i;
+								break;
+						}
+				}
+				tdoatwo(Node_number, measure_data,Microphone_Cita, Microphone_Center_Location, Microphone_Distance,Room_Length,Room_Width,scale,result,two1,two2);
+				cout<<"结果为：X="<<result[0]<<"  Y="<<result[1]<<endl;
+				for (int i=0;i<Node_number;i++)
+						data_flag[i]=0;
+				flag_count=0;
+		}*/
 		sleep(1);
 		}
 		return 0;
@@ -192,13 +241,25 @@ int main (int argc, const char * argv[])
 										break;
 								}
 
+								int index_phone=0;
+								for(int l=0;l<byte_num;l++)
+								{
+										if(recv_msg[l]=='#')
+										{
+												index_phone=recv_msg[l+1]-'0';
+												break;
+										}
+								}
+
                                 //printf("客户端(%d):%s\n",i,recv_msg);
 								if(data_temp[0]!='^')
 								{
 										double b=atof(data_temp);
-										measure_data[i]=b/(44100*1.0);
-										data_flag[i]=1; 
-										cout<<b<<endl;
+										if(abs(b)<22)
+										{
+										measure_data[index_phone]=b/(44100*1.0);
+										data_flag[index_phone]=1;  
+										}
 
                             }
 							}

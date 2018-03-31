@@ -13,7 +13,7 @@
 #include"tdoa_relax.h"
 #define BACKLOG 5 //完成三次握手但没有accept的队列的长度
 #define CONCURRENT_MAX 10 //应用层同时可以处理的连接
-#define SERVER_PORT 9000
+#define SERVER_PORT 9003
 #define BUFFER_SIZE 1024
 #define Node_number 8
 using namespace std;
@@ -186,19 +186,31 @@ int main (int argc, const char * argv[])
 																k++;
 														}
 														else
+														{
+																data_temp[j]='\0';
 																break;
+														}
 												}
 										}
-										break;
 								}
 
                                 //printf("客户端(%d):%s\n",i,recv_msg);
+								int index_phone=0;
+								for (int l=0;l<byte_num;l++)
+								{
+										if(recv_msg[l]=='#')
+										{
+												index_phone=recv_msg[l+1]-'0';
+												break;
+										}
+								}
 								if(data_temp[0]!='^')
 								{
 										double b=atof(data_temp);
 										measure_data[i]=b/(44100*1.0);
-										data_flag[i]=1; 
-										cout<<b<<endl;
+										data_flag[i]=1;
+										cout<<recv_msg;
+										cout<<"设备"<<index_phone<<":"<<b<<endl;
 
                             }
 							}
